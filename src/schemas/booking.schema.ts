@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-export const bookingRegistrationSchema = z
-  .object({
-    body: z.object({
-      carName: z.string().min(2, "Carname must be at least 2 characters"),
-      days: z.number().max(365).min(1),
-      rentPerDay: z.number().max(2000),
-    }),
-  })
-  .strict();
+export const bookingRegistrationSchema = z.object({
+  body: z
+    .object({
+      carName: z.string().min(2),
+      days: z.number().int().min(1).max(365),
+      rentPerDay: z.number().positive().max(2000),
+    })
+    .strict(),
+});
 
 export type bookingRegistrationBody = z.infer<
   typeof bookingRegistrationSchema

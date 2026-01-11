@@ -4,7 +4,6 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { prisma } from "../prisma.js";
 import { Status } from "../generated/prisma/enums.js";
 import { updateBookingSchema } from "../schemas/booking.schema.js";
-import { success } from "zod";
 
 //all the booking routes in here must be protected
 export const bookingRouter = express.Router();
@@ -138,6 +137,15 @@ bookingRouter.put("/:bookingId", async (req, res) => {
     const bookingId = req.params.bookingId;
 
     const parsed = updateBookingSchema.parse(req.body);
+
+    if (Object.keys(parsed).length === 0) {
+      return res.status(400).json({
+        success: false,
+        data: {
+          message: "no fields provided to update",
+        },
+      });
+    }
 
     const booking = await prisma.booking.findFirst({
       where: {

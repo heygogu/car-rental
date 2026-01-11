@@ -8,24 +8,6 @@ export const authRouter = express.Router();
 
 authRouter.post("/signup", validate, async (req: Request, res: Response) => {
   try {
-    //hash the password here
-    //check if the username already exists
-
-    const userExists = await prisma.user.findFirst({
-      where: {
-        username: req.body.username,
-      },
-    });
-
-    if (userExists) {
-      return res.status(409).json({
-        success: false,
-        data: {
-          message: "username already exists",
-        },
-      });
-    }
-
     //means it is a new user
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const user = await prisma.user.create({
@@ -42,14 +24,14 @@ authRouter.post("/signup", validate, async (req: Request, res: Response) => {
         userId: user.id,
       },
     });
-  } catch (error) {
-    return res.status(400).json({
-      succeess: false,
-      data: {
-        message: "Something went wrong",
-        error,
-      },
-    });
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        data: { message: "username already exists" },
+      });
+    }
+    throw error;
   }
 });
 
@@ -102,5 +84,10 @@ authRouter.post("/login", validate, async (req: Request, res: Response) => {
         token,
       },
     });
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: { message: "Internal server error" },
+    });
+  }
 });
